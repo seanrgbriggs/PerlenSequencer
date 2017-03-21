@@ -27,6 +27,33 @@ along with Perlenspiel. If not, see <http://www.gnu.org/licenses/>.
 /*jslint nomen: true, white: true */
 /*global PS */
 
+var G= (function () {
+	var MIDDLE_C = 60;
+	var BG_COL = 0x303030;
+	var HIGHLIGHT_COL = 0xF0F0F0;
+	var BEAD_RADIUS = 20;
+
+	var width, columns, currentColumn, tempo, octave;
+
+	function addCol() {
+
+    }
+
+    function switchBead(x, y) {
+
+    }
+
+    function playCol() {
+
+    }
+
+    function remCol() {
+
+    }
+
+}());
+
+
 // This is a template for creating new Perlenspiel games
 
 // All of the functions below MUST exist, or the engine will complain!
