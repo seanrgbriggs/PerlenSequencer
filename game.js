@@ -32,15 +32,71 @@ var G= (function () {
 	var BG_COL = 0x303030;
 	var HIGHLIGHT_COL = 0xF0F0F0;
 	var BEAD_RADIUS = 20;
+	var MAX_WIDTH = 31;
+	var HEIGHT = 12;
+	var LIT_COLORS = [0xff0080, 0xff0000, 0xff8000, 0xffff00, 0x80ff00, 0x00ff00, 0x00ff80, 0x00ffff, 0x0080ff, 0x0000ff, 0x8000ff, 0xff00ff];
+	var UNLIT_COLORS = LIT_COLORS.map(function (col) {
+		function dim(col, mask) {
+			return ((col & mask) / 2) & mask;
+        }
+		return dim(col, 0xff)+dim(col,0xff00)+dim(col,0xff0000);
+    })
 
 	var width, columns, currentColumn, tempo, octave;
+	width = 4;
+	columns = [];
+	//DEBUG STATEMENT REMOVE LATER
+		for(var q = 0; q < 31; q++){
+			columns.push(0);
+		}
+	//
+	currentColumn = 0;
 
+	function GridIterator(sizeX, sizeY) {
+		return {
+			x:0,y:0,width:sizeX,height:sizeY,
+			isDone: function () {
+				return this.y >= this.height;
+            },
+			next: function () {
+				this.x++;
+				if(this.x >= this.width){
+					this.x = 0;
+					this.y++;
+				}
+            }
+		};
+    }
+
+	function prepBeadData() {
+		var gi;
+		for(gi = new GridIterator(MAX_WIDTH, HEIGHT); !gi.isDone(); gi.next()){
+
+		}
+    }
+	
 	function addCol() {
-
+		width++;
+		columns.push(0x0);
     }
 
     function switchBead(x, y) {
+		var rowMask, isBeadLit;
 
+		if(x > columns.length){
+			return;
+		}
+
+		rowMask = 0x1 << y;
+		columns[x] = columns[x] ^ (rowMask);
+
+        isBeadLit = columns[x] & rowMask;
+        PS.debug(isBeadLit+"\n");
+        if(isBeadLit){
+			PS.color(x,y,LIT_COLORS[y]);
+		}else{
+        	PS.color(x,y,UNLIT_COLORS[y]);
+		}
     }
 
     function playCol() {
@@ -50,7 +106,16 @@ var G= (function () {
     function remCol() {
 
     }
-
+	return {
+		constants:{
+			MAX_WIDTH:MAX_WIDTH,
+            LIT_COLORS:LIT_COLORS,
+			UNLIT_COLORS:UNLIT_COLORS,
+			HEIGHT:HEIGHT
+		},
+		GridIterator:GridIterator,
+		switchBead:switchBead
+	};
 }());
 
 
@@ -71,7 +136,11 @@ PS.init = function( system, options ) {
 	// Do this FIRST to avoid problems!
 	// Otherwise you will get the default 8x8 grid
 
-	PS.gridSize( 8, 8 );
+	PS.gridSize( G.constants.MAX_WIDTH, G.constants.HEIGHT );
+
+	for(var gi = new G.GridIterator(G.constants.MAX_WIDTH, G.constants.HEIGHT); !gi.isDone(); gi.next()){
+		PS.color(gi.x, gi.y, G.constants.UNLIT_COLORS[gi.y]);
+	}
 
 	// Add any other initialization code you need here
 };
@@ -86,8 +155,8 @@ PS.init = function( system, options ) {
 
 PS.touch = function( x, y, data, options ) {
 	// Uncomment the following line to inspect parameters
-	// PS.debug( "PS.touch() @ " + x + ", " + y + "\n" );
-
+	PS.debug( "PS.touch() @ " + x + ", " + y + "\n" );
+	G.switchBead(x,y);
 	// Add code here for mouse clicks/touches over a bead
 };
 
