@@ -1,5 +1,3 @@
-// game.js for Perlenspiel 3.2.x
-
 /*
 Perlenspiel is a scheme by Professor Moriarty (bmoriarty@wpi.edu).
 Perlenspiel is Copyright © 2009-17 Worcester Polytechnic Institute.
@@ -22,38 +20,40 @@ along with Perlenspiel. If not, see <http://www.gnu.org/licenses/>.
 // The "use strict" directive in the following line is important. Don't remove it!
 "use strict";
 
-// The following comment lines are for JSLint/JSHint. Don't remove them!
-
 /*jslint nomen: true, white: true */
 /*global PS */
 
+
 var G= (function () {
-	var MIDDLE_C = 60;
-	var BG_COL = 0x303030;
+    var MIDDLE_C = 60;
+    var BG_COL = 0x303030;
 	var HIGHLIGHT_COL = 0xF0F0F0;
-	var BEAD_RADIUS = 20;
+    var BEAD_RADIUS = 20;
 	var MAX_WIDTH = 31;
-	var HEIGHT = 12;
+    var HEIGHT = 12;
 	var LIT_COLORS = [0xff0080, 0xff0000, 0xff8000, 0xffff00, 0x80ff00, 0x00ff00, 0x00ff80, 0x00ffff, 0x0080ff, 0x0000ff, 0x8000ff, 0xff00ff];
-	var UNLIT_COLORS = LIT_COLORS.map(function (col) {
+    var UNLIT_COLORS = LIT_COLORS.map(function (col) {
 		function dim(col, mask) {
 			return ((col & mask) / 2) & mask;
         }
 		return dim(col, 0xff)+dim(col,0xff00)+dim(col,0xff0000);
     })
+	var PLAY_BUTTON = {x:16, y:HEIGHT, playglyph:"▶", pauseglyph:"▌ ▌"};
 
-	var width, columns, currentColumn, tempo, octave;
-	width = 4;
+
+	var width, columns, currentColumn, tempo, octave,tempoCounter,tempoTimerPtr;
+    width = 4;
 	columns = [];
-	//DEBUG STATEMENT REMOVE LATER
-		for(var q = 0; q < 31; q++){
-			columns.push(0);
-		}
-	//
+    for(var q = 0; q < 31; q++){
+            columns.push(0);
+	}
+	tempo = 5;
 	currentColumn = 0;
+    tempoCounter = -1;
 
-	function GridIterator(sizeX, sizeY) {
-		return {
+
+    function GridIterator(sizeX, sizeY) {
+        return {
 			x:0,y:0,width:sizeX,height:sizeY,
 			isDone: function () {
 				return this.y >= this.height;
@@ -68,54 +68,74 @@ var G= (function () {
 		};
     }
 
-	function prepBeadData() {
-		var gi;
-		for(gi = new GridIterator(MAX_WIDTH, HEIGHT); !gi.isDone(); gi.next()){
-
-		}
-    }
-	
-	function addCol() {
-		width++;
-		columns.push(0x0);
+    function addCol() {
+        width++;
+        columns.push(0x0);
     }
 
     function switchBead(x, y) {
+
 		var rowMask, isBeadLit;
+        if(x > columns.length){
+            return;
+        }
 
-		if(x > columns.length){
-			return;
-		}
+        rowMask = 0x1 << y;
 
-		rowMask = 0x1 << y;
 		columns[x] = columns[x] ^ (rowMask);
-
         isBeadLit = columns[x] & rowMask;
         PS.debug(isBeadLit+"\n");
         if(isBeadLit){
-			PS.color(x,y,LIT_COLORS[y]);
+            PS.color(x,y,LIT_COLORS[y]);
             PS.alpha (x, y, 255);
-		}else{
-        	PS.color(x,y,UNLIT_COLORS[y]);
+        }else{
+            PS.color(x,y,UNLIT_COLORS[y]);
             PS.alpha ( x, y, 60 )
-		}
+        }
     }
 
     function playCol(x) {
-		var y;
-		for(y = 0; y<HEIGHT; y++){
-			//if the square is lit
-			if(LIT_COLORS.indexOf(PS.color(x, y)) !== -1){
-				//PS.debug(y+"\n");
-                PS.audioPlay( PS.piano( y+40 ) );
-			}
-		}
+        var y;
+        for(y = 0; y<HEIGHT; y++){
+            //if the square is lit
+            if(LIT_COLORS.indexOf(PS.color(x, y)) !== -1){
+                //PS.debug(y+"\n");
+                PS.audioPlay( PS.piano( MIDDLE_C + y ) );
+            }
+        }
     }
 
     function remCol() {
 
     }
-	return {
+
+    //function for the tempo and playing the music
+    function tempoTimer(){
+        tempoCounter += 1; // decrement counter
+        if ( tempoCounter < G.constants.MAX_WIDTH) {
+        }
+        else {
+            tempoCounter = 0;
+        }
+        PS.borderColor(tempoCounter, G.constants.HEIGHT, PS.DEFAULT);
+
+        G.playCol(tempoCounter);
+		PS.borderColor(PS.ALL, PS.ALL, PS.DEFAULT);
+
+        PS.borderColor(tempoCounter, PS.ALL, PS.COLOR_BLACK);
+    }
+
+	function pausePlay() {
+		if(!tempoTimerPtr){
+            tempoTimerPtr = PS.timerStart(tempo, tempoTimer)
+			PS.glyph(PLAY_BUTTON.x, PLAY_BUTTON.y, PLAY_BUTTON.playglyph);
+		}else{
+			PS.timerStop(tempoTimerPtr);
+			tempoTimerPtr = false;
+            PS.glyph(PLAY_BUTTON.x, PLAY_BUTTON.y, PLAY_BUTTON.pauseglyph);
+		}
+    }
+    return {
 		constants:{
 			MAX_WIDTH:MAX_WIDTH,
             LIT_COLORS:LIT_COLORS,
@@ -124,11 +144,21 @@ var G= (function () {
 		},
 		GridIterator:GridIterator,
 		switchBead:switchBead,
-		playCol:playCol
+		playCol:playCol,
+		pausePlay:pausePlay
 	};
 }());
+PS.init = function( system, options ) {
 
+	PS.gridSize( G.constants.MAX_WIDTH, G.constants.HEIGHT + 1 );
+    PS.gridColor (PS.COLOR_GRAY);
+    for(var gi = new G.GridIterator(G.constants.MAX_WIDTH, G.constants.HEIGHT); !gi.isDone(); gi.next()){
 
+// Add any other initialization code you need here
+// Use PS.gridSize( x, y ) to set the grid to
+// the initial dimensions you want (32 x 32 maximum)
+// Do this FIRST to avoid problems!
+// Otherwise you will get the default 8x8 grid
 // This is a template for creating new Perlenspiel games
 
 // All of the functions below MUST exist, or the engine will complain!
@@ -140,40 +170,18 @@ var G= (function () {
 // [system] = an object containing engine and platform information; see documentation for details
 // [options] = an object with optional parameters; see documentation for details
 
-PS.init = function( system, options ) {
-	// Use PS.gridSize( x, y ) to set the grid to
-	// the initial dimensions you want (32 x 32 maximum)
-	// Do this FIRST to avoid problems!
-	// Otherwise you will get the default 8x8 grid
 
-	PS.gridSize( G.constants.MAX_WIDTH, G.constants.HEIGHT );
-    PS.gridColor (PS.COLOR_GRAY);
-	for(var gi = new G.GridIterator(G.constants.MAX_WIDTH, G.constants.HEIGHT); !gi.isDone(); gi.next()){
-		PS.color(gi.x, gi.y, G.constants.UNLIT_COLORS[gi.y]);
-	}
+// game.js for Perlenspiel 3.2.x
+
+// The following comment lines are for JSLint/JSHint. Don't remove them!
+//DEBUG STATEMENT REMOVE LATER
+        PS.color(gi.x, gi.y, G.constants.UNLIT_COLORS[gi.y]);
+    }
     PS.alpha (PS.ALL, PS.ALL, 60);
-	PS.timerStart(20, tempoTimer);
-	// Add any other initialization code you need here
+    G.pausePlay();
+	PS.border(PS.ALL, G.constants.HEIGHT, 0);
 };
 
-//function for the tempo and playing the music
-var tempoCounter = -1;
-function tempoTimer(){
-    if ( tempoCounter < G.constants.MAX_WIDTH-1) {
-        tempoCounter += 1; // decrement counter
-    }
-    else {
-        tempoCounter = 0;
-    }
-    PS.borderColor(tempoCounter, PS.ALL, PS.COLOR_BLACK);
-    G.playCol(tempoCounter);
-    if(tempoCounter === 0){
-        PS.borderColor(30, PS.ALL, PS.DEFAULT);
-	}
-	else{
-        PS.borderColor(tempoCounter-1, PS.ALL, PS.DEFAULT);
-	}
-}
 
 // PS.touch ( x, y, data, options )
 // Called when the mouse button is clicked on a bead, or when a bead is touched
@@ -186,7 +194,11 @@ function tempoTimer(){
 PS.touch = function( x, y, data, options ) {
 	// Uncomment the following line to inspect parameters
 	PS.debug( "PS.touch() @ " + x + ", " + y + "\n" );
-	G.switchBead(x,y);
+	if(y < G.constants.HEIGHT) {
+        G.switchBead(x, y);
+    }else{
+        G.pausePlay();
+	}
 	// Add code here for mouse clicks/touches over a bead
 };
 
