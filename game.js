@@ -94,8 +94,10 @@ var G= (function () {
         PS.debug(isBeadLit+"\n");
         if(isBeadLit){
 			PS.color(x,y,LIT_COLORS[y]);
+            PS.alpha (x, y, 255);
 		}else{
         	PS.color(x,y,UNLIT_COLORS[y]);
+            PS.alpha ( x, y, 60 )
 		}
     }
 
@@ -137,11 +139,10 @@ PS.init = function( system, options ) {
 	// Otherwise you will get the default 8x8 grid
 
 	PS.gridSize( G.constants.MAX_WIDTH, G.constants.HEIGHT );
-
 	for(var gi = new G.GridIterator(G.constants.MAX_WIDTH, G.constants.HEIGHT); !gi.isDone(); gi.next()){
 		PS.color(gi.x, gi.y, G.constants.UNLIT_COLORS[gi.y]);
 	}
-
+    PS.alpha (PS.ALL, PS.ALL, 60);
 	// Add any other initialization code you need here
 };
 
