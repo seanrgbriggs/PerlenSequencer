@@ -106,7 +106,8 @@ var G= (function () {
 		for(y = 0; y<HEIGHT; y++){
 			//if the square is lit
 			if(LIT_COLORS.indexOf(PS.color(x, y)) !== -1){
-				PS.debug(y+"\n");
+				//PS.debug(y+"\n");
+                PS.audioPlay( PS.piano( y+40 ) );
 			}
 		}
     }
@@ -155,7 +156,7 @@ PS.init = function( system, options ) {
 	// Add any other initialization code you need here
 };
 
-//function for the tempo
+//function for the tempo and playing the music
 var tempoCounter = -1;
 function tempoTimer(){
     if ( tempoCounter < G.constants.MAX_WIDTH-1) {
@@ -164,7 +165,7 @@ function tempoTimer(){
     else {
         tempoCounter = 0;
     }
-    PS.borderColor(tempoCounter, PS.ALL, PS.COLOR_RED);
+    PS.borderColor(tempoCounter, PS.ALL, PS.COLOR_BLACK);
     G.playCol(tempoCounter);
     if(tempoCounter === 0){
         PS.borderColor(30, PS.ALL, PS.DEFAULT);
