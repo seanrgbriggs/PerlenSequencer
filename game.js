@@ -139,6 +139,7 @@ PS.init = function( system, options ) {
 	// Otherwise you will get the default 8x8 grid
 
 	PS.gridSize( G.constants.MAX_WIDTH, G.constants.HEIGHT );
+    PS.gridColor (PS.COLOR_GRAY);
 	for(var gi = new G.GridIterator(G.constants.MAX_WIDTH, G.constants.HEIGHT); !gi.isDone(); gi.next()){
 		PS.color(gi.x, gi.y, G.constants.UNLIT_COLORS[gi.y]);
 	}
