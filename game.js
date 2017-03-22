@@ -101,8 +101,14 @@ var G= (function () {
 		}
     }
 
-    function playCol() {
-
+    function playCol(x) {
+		var y;
+		for(y = 0; y<HEIGHT; y++){
+			//if the square is lit
+			if(LIT_COLORS.indexOf(PS.color(x, y)) !== -1){
+				PS.debug(y+"\n");
+			}
+		}
     }
 
     function remCol() {
@@ -116,7 +122,8 @@ var G= (function () {
 			HEIGHT:HEIGHT
 		},
 		GridIterator:GridIterator,
-		switchBead:switchBead
+		switchBead:switchBead,
+		playCol:playCol
 	};
 }());
 
@@ -144,8 +151,28 @@ PS.init = function( system, options ) {
 		PS.color(gi.x, gi.y, G.constants.UNLIT_COLORS[gi.y]);
 	}
     PS.alpha (PS.ALL, PS.ALL, 60);
+	PS.timerStart(20, tempoTimer);
 	// Add any other initialization code you need here
 };
+
+//function for the tempo
+var tempoCounter = -1;
+function tempoTimer(){
+    if ( tempoCounter < G.constants.MAX_WIDTH-1) {
+        tempoCounter += 1; // decrement counter
+    }
+    else {
+        tempoCounter = 0;
+    }
+    PS.borderColor(tempoCounter, PS.ALL, PS.COLOR_RED);
+    G.playCol(tempoCounter);
+    if(tempoCounter === 0){
+        PS.borderColor(30, PS.ALL, PS.DEFAULT);
+	}
+	else{
+        PS.borderColor(tempoCounter-1, PS.ALL, PS.DEFAULT);
+	}
+}
 
 // PS.touch ( x, y, data, options )
 // Called when the mouse button is clicked on a bead, or when a bead is touched
