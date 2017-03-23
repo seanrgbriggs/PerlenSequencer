@@ -41,15 +41,14 @@ var G= (function () {
 	var PLAY_BUTTON = {x:16, y:HEIGHT, playglyph:"▶", pauseglyph:"▌ ▌"};
 
 
-	var width, columns, currentColumn, tempo, octave,tempoCounter,tempoTimerPtr;
+	var width, columns, currentColumn, tempo, octave,tempoTimerPtr;
     width = 4;
 	columns = [];
     for(var q = 0; q < 31; q++){
             columns.push(0);
 	}
 	tempo = 5;
-	currentColumn = 0;
-    tempoCounter = -1;
+	currentColumn = -1;
 
 
     function GridIterator(sizeX, sizeY) {
@@ -94,11 +93,11 @@ var G= (function () {
         }
     }
 
-    function playCol(x) {
+    function playCol() {
         var y;
         for(y = 0; y<HEIGHT; y++){
             //if the square is lit
-            if(LIT_COLORS.indexOf(PS.color(x, y)) !== -1){
+            if(LIT_COLORS.indexOf(PS.color(currentColumn, y)) !== -1){
                 //PS.debug(y+"\n");
                 PS.audioPlay( PS.piano( MIDDLE_C + y ) );
             }
@@ -111,18 +110,18 @@ var G= (function () {
 
     //function for the tempo and playing the music
     function tempoTimer(){
-        tempoCounter += 1; // decrement counter
-        if ( tempoCounter < G.constants.MAX_WIDTH) {
+        currentColumn += 1; // decrement counter
+        if ( currentColumn < G.constants.MAX_WIDTH) {
         }
         else {
-            tempoCounter = 0;
+            currentColumn = 0;
         }
-        PS.borderColor(tempoCounter, G.constants.HEIGHT, PS.DEFAULT);
+        PS.borderColor(currentColumn, G.constants.HEIGHT, PS.DEFAULT);
 
-        G.playCol(tempoCounter);
+        G.playCol(currentColumn);
 		PS.borderColor(PS.ALL, PS.ALL, PS.DEFAULT);
 
-        PS.borderColor(tempoCounter, PS.ALL, PS.COLOR_BLACK);
+        PS.borderColor(currentColumn, PS.ALL, PS.COLOR_BLACK);
     }
 
 	function pausePlay() {
