@@ -49,7 +49,7 @@ var G= (function () {
     })
     var HEIGHT = LIT_COLORS.length;
 
-    var PLAY_BUTTON = {x:16, y:HEIGHT, playglyph:"▶", pauseglyph:"▌ ▌"};
+    var PLAY_BUTTON = {x:16, y:HEIGHT, playglyph:"▶", pauseglyph:"⏸"};
 
 
 	var width, columns, currentColumn, tempo, octave,tempoTimerPtr;
