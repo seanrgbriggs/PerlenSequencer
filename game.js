@@ -150,18 +150,26 @@ var G= (function () {
 
         G.playCol(currentColumn);
         if(currentColumn>0) {
-            PS.borderColor(currentColumn - 1, PS.ALL, PS.DEFAULT);
+            for(var y = 0; y < HEIGHT; y += 1) {
+                PS.borderColor(currentColumn - 1, y, PS.DEFAULT);
+            }
         }
         else{
-            PS.borderColor(width, PS.ALL, PS.DEFAULT);
+            for(var y = 0; y < HEIGHT; y += 1) {
+                PS.borderColor(width, y, PS.DEFAULT);
+            }
         }
-        PS.borderColor(currentColumn, PS.ALL, PS.COLOR_RED);
+        for(var y = 0; y < HEIGHT; y += 1) {
+            PS.borderColor(currentColumn, y, PS.COLOR_RED);
+        }
     }
 
     function changeTempo(x){
         //if decreasing the tempo, can't go too fast
+        var stopped = false;
         if(tempoTimerPtr) {
             PS.timerStop(tempoTimerPtr);
+            stopped = true;
         }
         if(x < 0 && tempo > MIN_TEMPO) {
             tempo += x;
@@ -171,17 +179,43 @@ var G= (function () {
             tempo += x;
             //PS.debug("slower!\n");
         }
-        tempoTimerPtr = PS.timerStart(tempo, tempoTimer);
+        if(stopped) {
+            tempoTimerPtr = PS.timerStart(tempo, tempoTimer);
+        }
     }
 
 	function pausePlay() {
 		if(!tempoTimerPtr){
             tempoTimerPtr = PS.timerStart(tempo, tempoTimer);
-			PS.glyph(PLAY_BUTTON.x, PLAY_BUTTON.y, PLAY_BUTTON.playglyph);
+			//PS.glyph(PLAY_BUTTON.x, PLAY_BUTTON.y, PLAY_BUTTON.playglyph);
+			//play button
+            PS.color(17, HEIGHT+1, PS.COLOR_WHITE);
+            PS.color(17, HEIGHT+3, PS.COLOR_WHITE);
+            PS.color(15, HEIGHT+1, PS.COLOR_BLACK);
+            PS.color(15, HEIGHT+2, PS.COLOR_BLACK);
+            PS.color(15, HEIGHT+3, PS.COLOR_BLACK);
+            PS.color(16, HEIGHT+1, PS.COLOR_BLACK);
+            PS.border(16, HEIGHT+1, {top:20});
+            PS.borderColor(16, HEIGHT+1, PS.COLOR_WHITE);
+            PS.color(16, HEIGHT+2, PS.COLOR_BLACK);
+            PS.border(16, HEIGHT+3, {bottom:20});
+            PS.borderColor(16, HEIGHT+3, PS.COLOR_WHITE);
+            PS.color(16, HEIGHT+3, PS.COLOR_BLACK);
+            PS.color(17, HEIGHT+2, PS.COLOR_BLACK);
+
 		}else{
 			PS.timerStop(tempoTimerPtr);
 			tempoTimerPtr = false;
-            PS.glyph(PLAY_BUTTON.x, PLAY_BUTTON.y, PLAY_BUTTON.pauseglyph);
+            //PS.glyph(PLAY_BUTTON.x, PLAY_BUTTON.y, PLAY_BUTTON.pauseglyph);
+            PS.color(15, HEIGHT+1, PS.COLOR_BLACK);
+            PS.color(15, HEIGHT+2, PS.COLOR_BLACK);
+            PS.color(15, HEIGHT+3, PS.COLOR_BLACK);
+            PS.color(16, HEIGHT+1, PS.COLOR_WHITE);
+            PS.color(16, HEIGHT+2, PS.COLOR_WHITE);
+            PS.color(16, HEIGHT+3, PS.COLOR_WHITE);
+            PS.color(17, HEIGHT+1, PS.COLOR_BLACK);
+            PS.color(17, HEIGHT+2, PS.COLOR_BLACK);
+            PS.color(17, HEIGHT+3, PS.COLOR_BLACK);
 		}
     }
     return {
@@ -220,23 +254,55 @@ var G= (function () {
 
 PS.init = function( system, options ) {
 
-	PS.gridSize( G.constants.MAX_WIDTH, G.constants.HEIGHT + 1 );
+	PS.gridSize( G.constants.MAX_WIDTH, G.constants.HEIGHT + 5 );
     PS.gridColor (G.BG_COL);
     PS.gridColor(PS.COLOR_BLACK)
     for(var gi = new G.GridIterator(G.constants.MAX_WIDTH, G.constants.HEIGHT); !gi.isDone(); gi.next()){
         PS.color(gi.x, gi.y, G.constants.UNLIT_COLORS[gi.y]);
     }
     PS.alpha (PS.ALL, PS.ALL, 60);
-    PS.glyph(G.constants.MAX_WIDTH-2, G.constants.HEIGHT,"⏮");
-    PS.glyph(G.constants.MAX_WIDTH-1, G.constants.HEIGHT,"⏭");
-    PS.glyph(0, G.constants.HEIGHT,"-");
-    PS.glyph(1, G.constants.HEIGHT,"+");
-    G.pausePlay();
     PS.border(PS.ALL, G.constants.HEIGHT, 0);
+    PS.border(PS.ALL, G.constants.HEIGHT+1, 0);
+    PS.border(PS.ALL, G.constants.HEIGHT+2, 0);
+    PS.border(PS.ALL, G.constants.HEIGHT+3, 0);
+    PS.border(PS.ALL, G.constants.HEIGHT+4, 0);
+    PS.alpha(PS.ALL, G.constants.HEIGHT, 255);
+    PS.alpha(PS.ALL, G.constants.HEIGHT+1, 255);
+    PS.alpha(PS.ALL, G.constants.HEIGHT+2, 255);
+    PS.alpha(PS.ALL, G.constants.HEIGHT+3, 255);
+    PS.alpha(PS.ALL, G.constants.HEIGHT+4, 255);
+
+    //minus button
+    PS.color(1, G.constants.HEIGHT+2, PS.COLOR_RED);
+    PS.color(2, G.constants.HEIGHT+2, PS.COLOR_RED);
+    PS.color(3, G.constants.HEIGHT+2, PS.COLOR_RED);
+
+    //plus button
+    PS.color(5, G.constants.HEIGHT+2, PS.COLOR_RED);
+    PS.color(6, G.constants.HEIGHT+2, PS.COLOR_RED);
+    PS.color(7, G.constants.HEIGHT+2, PS.COLOR_RED);
+    PS.color(6, G.constants.HEIGHT+1, PS.COLOR_RED);
+    PS.color(6, G.constants.HEIGHT+3, PS.COLOR_RED);
+
+    //addcol button
+    PS.color(30, G.constants.HEIGHT+2, PS.COLOR_BLACK);
+    PS.color(29, G.constants.HEIGHT+1, PS.COLOR_BLACK);
+    PS.color(29, G.constants.HEIGHT+2, PS.COLOR_BLACK);
+    PS.color(29, G.constants.HEIGHT+3, PS.COLOR_BLACK);
+    PS.color(28, G.constants.HEIGHT+2, PS.COLOR_BLACK);
+
+    //remcol button
+    PS.color(24, G.constants.HEIGHT+2, PS.COLOR_BLACK);
+    PS.color(25, G.constants.HEIGHT+2, PS.COLOR_BLACK);
+    PS.color(26, G.constants.HEIGHT+2, PS.COLOR_BLACK);
+
+
     //preload all of the piano notes
     for(var x = 60; x <= 72; x += 1) {
         PS.audioLoad(PS.piano(x));
     }
+    G.pausePlay();
+
 };
 
 
@@ -256,24 +322,24 @@ PS.touch = function( x, y, data, options ) {
         G.switchBead(x, y);
     }
     //increase the tempo
-    else if(x === G.constants.MAX_WIDTH-1 && y === G.constants.HEIGHT){
-	    G.changeTempo(-10);
+    else if(x >= 1 && x <= 3){
+	    G.changeTempo(10);
     }
     //decrease the tempo
-    else if(x === G.constants.MAX_WIDTH-2 && y === G.constants.HEIGHT){
-        G.changeTempo(10);
+    else if(x >= 5 && x <= 7){
+        G.changeTempo(-10);
+    }
+    else if(x >= 15 && x <= 17){
+        G.pausePlay();
     }
     //decrease the width
-    else if(x === 0 && y === G.constants.HEIGHT){
+    else if(x >= 24 && x <= 26){
         G.remCol();
     }
     //increase the width
-    else if(x === 1 && y === G.constants.HEIGHT){
+    else if(x >= 28 && x <= 30){
         G.addCol();
     }
-    else{
-        G.pausePlay();
-	}
 	// Add code here for mouse clicks/touches over a bead
 };
 
