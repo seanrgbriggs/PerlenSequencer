@@ -55,9 +55,9 @@ var G= (function () {
 
 
 	var width, columns, currentColumn, tempo, octave,tempoTimerPtr;
-    width = 4;
+    width = MAX_WIDTH-1;
 	columns = [];
-    for(var q = 0; q < 31; q++){
+    for(var q = 0; q < MAX_WIDTH; q++){
             columns.push(0);
 	}
 	tempo = 50;
@@ -81,14 +81,34 @@ var G= (function () {
     }
 
     function addCol() {
-        width++;
-        columns.push(0x0);
+        if(width < MAX_WIDTH -1) {
+            width++;
+            columns.push(0x0);
+            for(var y = 0; y < HEIGHT; y += 1){
+                PS.color(width, y, UNLIT_COLORS[y]);
+                PS.alpha(width, y, 60);
+                PS.borderColor(width, y, PS.DEFAULT);
+            }
+        }
+    }
+
+    function remCol() {
+        if(width >= 4) {
+            width--;
+            columns.pop();
+            for (var y = 0; y < HEIGHT; y++) {
+                PS.color(width + 1, y, PS.COLOR_BLACK);
+                PS.alpha(width + 1, y, 255);
+                PS.borderColor(width+1, y, PS.COLOR_BLACK);
+            }
+            //PS.debug(width + "\n" + columns.length + "\n");
+        }
     }
 
     function switchBead(x, y) {
 
 		var rowMask, isBeadLit;
-        if(x > columns.length){
+        if(x > width){
             return;
         }
 
@@ -96,7 +116,7 @@ var G= (function () {
 
 		columns[x] = columns[x] ^ (rowMask);
         isBeadLit = columns[x] & rowMask;
-        PS.debug(isBeadLit+"\n");
+        //PS.debug(isBeadLit+"\n");
         if(isBeadLit){
             PS.color(x,y,LIT_COLORS[y]);
             PS.alpha (x, y, 255);
@@ -114,20 +134,14 @@ var G= (function () {
             if(columns[currentColumn] & (1 << y)) {
                 //PS.debug(columns[currentColumn] ^ (1 << y)+"\n");
                 PS.audioPlay(PS.piano(MIDDLE_C_PIANO + (HEIGHT-y-1)));
-                //PS.debug(MIDDLE_C_PIANO + (HEIGHT-y-1)+"\n");
             }
         }
-    }
-
-    function remCol() {
-        columns.pop();
-        PS.debug(columns.length+"\n");
     }
 
     //function for the tempo and playing the music
     function tempoTimer(){
         currentColumn += 1; // decrement counter
-        if ( currentColumn < G.constants.MAX_WIDTH) {
+        if ( currentColumn <= width) {
         }
         else {
             currentColumn = 0;
@@ -135,9 +149,13 @@ var G= (function () {
         PS.borderColor(currentColumn, G.constants.HEIGHT, PS.DEFAULT);
 
         G.playCol(currentColumn);
-		PS.borderColor(PS.ALL, PS.ALL, PS.DEFAULT);
-
-        PS.borderColor(currentColumn, PS.ALL, PS.COLOR_BLACK);
+        if(currentColumn>0) {
+            PS.borderColor(currentColumn - 1, PS.ALL, PS.DEFAULT);
+        }
+        else{
+            PS.borderColor(width, PS.ALL, PS.DEFAULT);
+        }
+        PS.borderColor(currentColumn, PS.ALL, PS.COLOR_RED);
     }
 
     function changeTempo(x){
@@ -180,6 +198,7 @@ var G= (function () {
 		playCol:playCol,
 		pausePlay:pausePlay,
         changeTempo:changeTempo,
+        addCol:addCol,
         remCol:remCol
 	};
 }());
@@ -203,12 +222,15 @@ PS.init = function( system, options ) {
 
 	PS.gridSize( G.constants.MAX_WIDTH, G.constants.HEIGHT + 1 );
     PS.gridColor (G.BG_COL);
+    PS.gridColor(PS.COLOR_BLACK)
     for(var gi = new G.GridIterator(G.constants.MAX_WIDTH, G.constants.HEIGHT); !gi.isDone(); gi.next()){
         PS.color(gi.x, gi.y, G.constants.UNLIT_COLORS[gi.y]);
     }
     PS.alpha (PS.ALL, PS.ALL, 60);
-    PS.glyph(G.constants.MAX_WIDTH-2, G.constants.HEIGHT,"→");
+    PS.glyph(G.constants.MAX_WIDTH-2, G.constants.HEIGHT,"⏮");
     PS.glyph(G.constants.MAX_WIDTH-1, G.constants.HEIGHT,"⏭");
+    PS.glyph(0, G.constants.HEIGHT,"-");
+    PS.glyph(1, G.constants.HEIGHT,"+");
     G.pausePlay();
     PS.border(PS.ALL, G.constants.HEIGHT, 0);
     //preload all of the piano notes
@@ -229,15 +251,25 @@ PS.init = function( system, options ) {
 
 PS.touch = function( x, y, data, options ) {
 	// Uncomment the following line to inspect parameters
-	PS.debug( "PS.touch() @ " + x + ", " + y + "\n" );
+	//PS.debug( "PS.touch() @ " + x + ", " + y + "\n" );
 	if(y < G.constants.HEIGHT) {
         G.switchBead(x, y);
     }
+    //increase the tempo
     else if(x === G.constants.MAX_WIDTH-1 && y === G.constants.HEIGHT){
 	    G.changeTempo(-10);
     }
+    //decrease the tempo
     else if(x === G.constants.MAX_WIDTH-2 && y === G.constants.HEIGHT){
         G.changeTempo(10);
+    }
+    //decrease the width
+    else if(x === 0 && y === G.constants.HEIGHT){
+        G.remCol();
+    }
+    //increase the width
+    else if(x === 1 && y === G.constants.HEIGHT){
+        G.addCol();
     }
     else{
         G.pausePlay();
@@ -318,12 +350,20 @@ PS.keyDown = function( key, shift, ctrl, options ) {
 
 	// Add code here for when a key is pressed
     // play/pause when spacebar is pressed
-    if(key === 32){
+    if(key === 32) {
         G.pausePlay();
     }
-
-    if(key === 48){
+    else if(key === PS.KEY_ARROW_LEFT){
         G.remCol();
+    }
+    else if(key === PS.KEY_ARROW_RIGHT){
+        G.addCol();
+    }
+    else if(key === PS.KEY_ARROW_DOWN){
+        G.changeTempo(10);
+    }
+    else if(key === PS.KEY_ARROW_UP){
+        G.changeTempo(-10);
     }
 };
 
