@@ -110,14 +110,10 @@ var G= (function () {
             //if the square is lit
 
             if(columns[currentColumn] & (1 << y)) {
-                PS.debug(columns[currentColumn] ^ (1 << y)+"\n");
-                PS.audioPlay(PS.piano(MIDDLE_C + y));
+                //PS.debug(columns[currentColumn] ^ (1 << y)+"\n");
+                PS.audioPlay(PS.piano(MIDDLE_C + (HEIGHT-y-1)));
+                //PS.debug(MIDDLE_C + (HEIGHT-y-1)+"\n");
             }
-            /*
-            if(LIT_COLORS.indexOf(PS.color(currentColumn, y)) !== -1){
-                //PS.debug(y+"\n");
-                PS.audioPlay( PS.piano( MIDDLE_C + y ) );
-            }*/
         }
     }
 
@@ -192,6 +188,10 @@ PS.init = function( system, options ) {
     PS.alpha (PS.ALL, PS.ALL, 60);
     G.pausePlay();
     PS.border(PS.ALL, G.constants.HEIGHT, 0);
+    //preload all of the piano notes
+    for(var x = 60; x <= 72; x += 1) {
+        PS.audioLoad(PS.piano(x));
+    }
 };
 
 
@@ -287,6 +287,10 @@ PS.keyDown = function( key, shift, ctrl, options ) {
 	//	PS.debug( "DOWN: key = " + key + ", shift = " + shift + "\n" );
 
 	// Add code here for when a key is pressed
+    // play/pause when spacebar is pressed
+    if(key === 32){
+        G.pausePlay();
+    }
 };
 
 // PS.keyUp ( key, shift, ctrl, options )
