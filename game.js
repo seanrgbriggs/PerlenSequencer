@@ -32,11 +32,13 @@ along with Perlenspiel. If not, see <http://www.gnu.org/licenses/>.
 ////0x0080ff, 0x0000ff, 0x8000ff, 0xff00ff];
 
 var G= (function () {
-    var MIDDLE_C = 60;
+    var MIDDLE_C_PIANO = 60;
     var BG_COL = PS.COLOR_BLACK;
 	var HIGHLIGHT_COL = 0xF0F0F0;
     var BEAD_RADIUS = 20;
 	var MAX_WIDTH = 32;
+	var MIN_TEMPO = 10;
+	var MAX_TEMPO = 150;
 	var LIT_COLORS = [0xff0080, 0xff0000, 0xff8000, 0xffff00,
         0x80ff00, 0x00ff00];
     LIT_COLORS = LIT_COLORS.concat(LIT_COLORS.reverse());
@@ -111,14 +113,15 @@ var G= (function () {
 
             if(columns[currentColumn] & (1 << y)) {
                 //PS.debug(columns[currentColumn] ^ (1 << y)+"\n");
-                PS.audioPlay(PS.piano(MIDDLE_C + (HEIGHT-y-1)));
-                //PS.debug(MIDDLE_C + (HEIGHT-y-1)+"\n");
+                PS.audioPlay(PS.piano(MIDDLE_C_PIANO + (HEIGHT-y-1)));
+                //PS.debug(MIDDLE_C_PIANO + (HEIGHT-y-1)+"\n");
             }
         }
     }
 
     function remCol() {
-
+        columns.pop();
+        PS.debug(columns.length+"\n");
     }
 
     //function for the tempo and playing the music
@@ -137,9 +140,25 @@ var G= (function () {
         PS.borderColor(currentColumn, PS.ALL, PS.COLOR_BLACK);
     }
 
+    function changeTempo(x){
+        //if decreasing the tempo, can't go too fast
+        if(tempoTimerPtr) {
+            PS.timerStop(tempoTimerPtr);
+        }
+        if(x < 0 && tempo > MIN_TEMPO) {
+            tempo += x;
+            //PS.debug("faster!\n");
+        }
+        else if(x > 0 && tempo < MAX_TEMPO){
+            tempo += x;
+            //PS.debug("slower!\n");
+        }
+        tempoTimerPtr = PS.timerStart(tempo, tempoTimer);
+    }
+
 	function pausePlay() {
 		if(!tempoTimerPtr){
-            tempoTimerPtr = PS.timerStart(tempo, tempoTimer)
+            tempoTimerPtr = PS.timerStart(tempo, tempoTimer);
 			PS.glyph(PLAY_BUTTON.x, PLAY_BUTTON.y, PLAY_BUTTON.playglyph);
 		}else{
 			PS.timerStop(tempoTimerPtr);
@@ -159,7 +178,9 @@ var G= (function () {
 		GridIterator:GridIterator,
 		switchBead:switchBead,
 		playCol:playCol,
-		pausePlay:pausePlay
+		pausePlay:pausePlay,
+        changeTempo:changeTempo,
+        remCol:remCol
 	};
 }());
 
@@ -186,6 +207,8 @@ PS.init = function( system, options ) {
         PS.color(gi.x, gi.y, G.constants.UNLIT_COLORS[gi.y]);
     }
     PS.alpha (PS.ALL, PS.ALL, 60);
+    PS.glyph(G.constants.MAX_WIDTH-2, G.constants.HEIGHT,"→");
+    PS.glyph(G.constants.MAX_WIDTH-1, G.constants.HEIGHT,"⏭");
     G.pausePlay();
     PS.border(PS.ALL, G.constants.HEIGHT, 0);
     //preload all of the piano notes
@@ -209,7 +232,14 @@ PS.touch = function( x, y, data, options ) {
 	PS.debug( "PS.touch() @ " + x + ", " + y + "\n" );
 	if(y < G.constants.HEIGHT) {
         G.switchBead(x, y);
-    }else{
+    }
+    else if(x === G.constants.MAX_WIDTH-1 && y === G.constants.HEIGHT){
+	    G.changeTempo(-10);
+    }
+    else if(x === G.constants.MAX_WIDTH-2 && y === G.constants.HEIGHT){
+        G.changeTempo(10);
+    }
+    else{
         G.pausePlay();
 	}
 	// Add code here for mouse clicks/touches over a bead
@@ -290,6 +320,10 @@ PS.keyDown = function( key, shift, ctrl, options ) {
     // play/pause when spacebar is pressed
     if(key === 32){
         G.pausePlay();
+    }
+
+    if(key === 48){
+        G.remCol();
     }
 };
 
