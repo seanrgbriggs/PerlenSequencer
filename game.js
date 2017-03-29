@@ -89,6 +89,7 @@ var G= (function () {
                 PS.alpha(width, y, 60);
                 PS.borderColor(width, y, PS.DEFAULT);
             }
+            PS.audioPlay("fx_click");
         }
     }
 
@@ -101,6 +102,7 @@ var G= (function () {
                 PS.alpha(width + 1, y, 255);
                 PS.borderColor(width+1, y, PS.COLOR_BLACK);
             }
+            PS.audioPlay("fx_click");
             //PS.debug(width + "\n" + columns.length + "\n");
         }
     }
@@ -171,10 +173,12 @@ var G= (function () {
         }
         if(x < 0 && tempo > MIN_TEMPO) {
             tempo += x;
+            PS.audioPlay("fx_click");
             //PS.debug("faster!\n");
         }
         else if(x > 0 && tempo < MAX_TEMPO){
             tempo += x;
+            PS.audioPlay("fx_click");
             //PS.debug("slower!\n");
         }
         if(stopped) {
@@ -308,6 +312,7 @@ PS.init = function( system, options ) {
     for(x = 60; x <= 72; x += 1) {
         PS.audioLoad(PS.piano(x));
     }
+    PS.audioLoad("fx_click");
     G.pausePlay();
 
 };
@@ -338,6 +343,7 @@ PS.touch = function( x, y, data, options ) {
     }
     else if(x >= 15 && x <= 17){
         G.pausePlay();
+        PS.audioPlay("fx_click");
     }
     //decrease the width
     else if(x >= 24 && x <= 26){
