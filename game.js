@@ -91,6 +91,19 @@ var G= (function () {
             }
             PS.audioPlay("fx_click");
         }
+
+        if(width > MAX_WIDTH-1){
+            PS.color(30, G.constants.HEIGHT+2, PS.COLOR_GRAY);
+            PS.color(29, G.constants.HEIGHT+1, PS.COLOR_GRAY);
+            PS.color(29, G.constants.HEIGHT+2, PS.COLOR_GRAY);
+            PS.color(29, G.constants.HEIGHT+3, PS.COLOR_GRAY);
+            PS.color(28, G.constants.HEIGHT+2, PS.COLOR_GRAY);
+        }
+        else{
+            PS.color(24, G.constants.HEIGHT+2, PS.COLOR_BLACK);
+            PS.color(25, G.constants.HEIGHT+2, PS.COLOR_BLACK);
+            PS.color(26, G.constants.HEIGHT+2, PS.COLOR_BLACK);
+        }
     }
 
     function remCol() {
@@ -104,6 +117,18 @@ var G= (function () {
             }
             PS.audioPlay("fx_click");
             //PS.debug(width + "\n" + columns.length + "\n");
+        }
+        if(width < 4){
+            PS.color(24, G.constants.HEIGHT+2, PS.COLOR_GRAY);
+            PS.color(25, G.constants.HEIGHT+2, PS.COLOR_GRAY);
+            PS.color(26, G.constants.HEIGHT+2, PS.COLOR_GRAY);
+        }
+        else{
+            PS.color(30, G.constants.HEIGHT+2, PS.COLOR_BLACK);
+            PS.color(29, G.constants.HEIGHT+1, PS.COLOR_BLACK);
+            PS.color(29, G.constants.HEIGHT+2, PS.COLOR_BLACK);
+            PS.color(29, G.constants.HEIGHT+3, PS.COLOR_BLACK);
+            PS.color(28, G.constants.HEIGHT+2, PS.COLOR_BLACK);
         }
     }
 
