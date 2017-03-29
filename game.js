@@ -175,11 +175,35 @@ var G= (function () {
             tempo += x;
             PS.audioPlay("fx_click");
             //PS.debug("faster!\n");
+            if(tempo === MIN_TEMPO){
+                PS.color(5, G.constants.HEIGHT+2, PS.COLOR_GRAY);
+                PS.color(6, G.constants.HEIGHT+2, PS.COLOR_GRAY);
+                PS.color(7, G.constants.HEIGHT+2, PS.COLOR_GRAY);
+                PS.color(6, G.constants.HEIGHT+1, PS.COLOR_GRAY);
+                PS.color(6, G.constants.HEIGHT+3, PS.COLOR_GRAY);
+            }
+            else{
+                PS.color(1, G.constants.HEIGHT+2, PS.COLOR_RED);
+                PS.color(2, G.constants.HEIGHT+2, PS.COLOR_RED);
+                PS.color(3, G.constants.HEIGHT+2, PS.COLOR_RED);
+            }
         }
         else if(x > 0 && tempo < MAX_TEMPO){
             tempo += x;
             PS.audioPlay("fx_click");
             //PS.debug("slower!\n");
+            if(tempo === MAX_TEMPO){
+                PS.color(1, G.constants.HEIGHT+2, PS.COLOR_GRAY);
+                PS.color(2, G.constants.HEIGHT+2, PS.COLOR_GRAY);
+                PS.color(3, G.constants.HEIGHT+2, PS.COLOR_GRAY);
+            }
+            else{
+                PS.color(5, G.constants.HEIGHT+2, PS.COLOR_RED);
+                PS.color(6, G.constants.HEIGHT+2, PS.COLOR_RED);
+                PS.color(7, G.constants.HEIGHT+2, PS.COLOR_RED);
+                PS.color(6, G.constants.HEIGHT+1, PS.COLOR_RED);
+                PS.color(6, G.constants.HEIGHT+3, PS.COLOR_RED);
+            }
         }
         if(stopped) {
             tempoTimerPtr = PS.timerStart(tempo, tempoTimer);
@@ -343,7 +367,6 @@ PS.touch = function( x, y, data, options ) {
     }
     else if(x >= 15 && x <= 17){
         G.pausePlay();
-        PS.audioPlay("fx_click");
     }
     //decrease the width
     else if(x >= 24 && x <= 26){
