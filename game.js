@@ -55,7 +55,7 @@ var G= (function () {
 
 
 	var width, columns, currentColumn, tempo, octave,tempoTimerPtr;
-    width = MAX_WIDTH-1;
+    width = MAX_WIDTH / 3;
 	columns = [];
     for(var q = 0; q < MAX_WIDTH; q++){
             columns.push(0);
@@ -140,10 +140,8 @@ var G= (function () {
 
     //function for the tempo and playing the music
     function tempoTimer(){
-        currentColumn += 1; // decrement counter
-        if ( currentColumn <= width) {
-        }
-        else {
+        currentColumn += 1; // increment counter
+        if ( currentColumn > width) {
             currentColumn = 0;
         }
         PS.borderColor(currentColumn, G.constants.HEIGHT, PS.DEFAULT);
@@ -151,7 +149,7 @@ var G= (function () {
         G.playCol(currentColumn);
         if(currentColumn>0) {
             for(var y = 0; y < HEIGHT; y += 1) {
-                PS.borderColor(currentColumn - 1, y, PS.DEFAULT);
+               PS.borderColor(currentColumn - 1, y, PS.DEFAULT);
             }
         }
         else{
@@ -224,7 +222,6 @@ var G= (function () {
             LIT_COLORS:LIT_COLORS,
 			UNLIT_COLORS:UNLIT_COLORS,
 			HEIGHT:HEIGHT,
-
             BG_COL:BG_COL
 		},
 		GridIterator:GridIterator,
@@ -233,7 +230,8 @@ var G= (function () {
 		pausePlay:pausePlay,
         changeTempo:changeTempo,
         addCol:addCol,
-        remCol:remCol
+        remCol:remCol,
+        width:width
 	};
 }());
 
@@ -253,13 +251,21 @@ var G= (function () {
 // Do this FIRST to avoid problems!
 
 PS.init = function( system, options ) {
+    var gi, x;
 
 	PS.gridSize( G.constants.MAX_WIDTH, G.constants.HEIGHT + 5 );
-    PS.gridColor (G.BG_COL);
-    PS.gridColor(PS.COLOR_BLACK)
-    for(var gi = new G.GridIterator(G.constants.MAX_WIDTH, G.constants.HEIGHT); !gi.isDone(); gi.next()){
+    PS.gridColor (G.constants.BG_COL);
+    //PS.gridColor(PS.COLOR_BLACK)
+    for(gi = new G.GridIterator(G.width, G.constants.HEIGHT); !gi.isDone(); gi.next()){
         PS.color(gi.x, gi.y, G.constants.UNLIT_COLORS[gi.y]);
     }
+   for(gi = new G.GridIterator(G.constants.MAX_WIDTH - (G.width + 1), G.constants.HEIGHT); !gi.isDone(); gi.next()){
+       PS.color((G.width + 1)+gi.x, gi.y, PS.COLOR_BLACK);
+       PS.alpha((G.width + 1)+gi.x , gi.y, 255);
+       PS.borderColor((G.width + 1)+gi.x, gi.y, PS.COLOR_BLACK);
+   }
+
+
     PS.alpha (PS.ALL, PS.ALL, 60);
     PS.border(PS.ALL, G.constants.HEIGHT, 0);
     PS.border(PS.ALL, G.constants.HEIGHT+1, 0);
@@ -271,6 +277,7 @@ PS.init = function( system, options ) {
     PS.alpha(PS.ALL, G.constants.HEIGHT+2, 255);
     PS.alpha(PS.ALL, G.constants.HEIGHT+3, 255);
     PS.alpha(PS.ALL, G.constants.HEIGHT+4, 255);
+
 
     //minus button
     PS.color(1, G.constants.HEIGHT+2, PS.COLOR_RED);
@@ -298,7 +305,7 @@ PS.init = function( system, options ) {
 
 
     //preload all of the piano notes
-    for(var x = 60; x <= 72; x += 1) {
+    for(x = 60; x <= 72; x += 1) {
         PS.audioLoad(PS.piano(x));
     }
     G.pausePlay();
